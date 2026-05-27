@@ -376,15 +376,74 @@ async function fetchG2B() {
 
   // 중복 제거 (같은 공고번호)
   const seen = new Set();
-  return results.filter(n => {
+  const deduped = results.filter(n => {
     if (seen.has(n.id)) return false;
     seen.add(n.id); return true;
   });
+
+  // API 미승인/오류 시 데모 데이터 폴백
+  return deduped.length > 0 ? deduped : G2B_DEMO;
 }
 
 function formatDate(d) {
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
 }
+
+// ── 나라장터 G2B 데모 데이터 (API 미승인 시 폴백) ─────────────
+const G2B_DEMO = [
+  {
+    id:'G2B-DEMO-001', source:'g2b', type:'procurement',
+    title:'한국도로공사 고속도로 ITS 통합관제 광케이블 이설공사',
+    agency:'한국도로공사', ministryFull:'한국도로공사',
+    budgetWon:1_200_000_000,
+    postDate:today(), deadline:addDays(18),
+    categories:['its','telecom','install'],
+    bidNumber:'20260527-EXCO-ITS-001',
+    url:'https://www.g2b.go.kr',
+    summary:'고속도로 구간 확장에 따른 ITS 통합관제 광케이블 이설 및 통신설비 재배치 공사. 나라장터 API 키 활용신청 후 실시간 데이터로 전환됩니다.',
+    requirements:['정보통신공사업 면허','광케이블 포설 실적','ITS 시공 경험'],
+    contact:{name:'나라장터 담당자',tel:'1588-0800',email:'',method:'나라장터 전자입찰 ※ API 활용신청 필요'}
+  },
+  {
+    id:'G2B-DEMO-002', source:'g2b', type:'procurement',
+    title:'국도 CCTV 및 VMS 도로전광표지판 설치공사 (3공구)',
+    agency:'국토교통부 지방국토관리청', ministryFull:'국토교통부',
+    budgetWon:850_000_000,
+    postDate:addDays(-2), deadline:addDays(12),
+    categories:['cctv','its','install'],
+    bidNumber:'20260525-MOLIT-CCTV-003',
+    url:'https://www.g2b.go.kr',
+    summary:'국도 3공구 구간 교통안전을 위한 CCTV 30식, VMS 도로전광표지판 5식, 표지판 20식 설치공사.',
+    requirements:['정보통신공사업 면허','CCTV 설치 실적 3건 이상'],
+    contact:{name:'나라장터 담당자',tel:'1588-0800',email:'',method:'나라장터 전자입찰'}
+  },
+  {
+    id:'G2B-DEMO-003', source:'g2b', type:'procurement',
+    title:'지방도 정보통신망 L2·L3 스위치 교환설비 구축사업',
+    agency:'경기도 도로정책과', ministryFull:'경기도',
+    budgetWon:430_000_000,
+    postDate:addDays(-1), deadline:addDays(9),
+    categories:['telecom','install'],
+    bidNumber:'20260526-GG-NW-007',
+    url:'https://www.g2b.go.kr',
+    summary:'지방도 교통정보센터 정보통신망 노후 교환설비(L2·L3 스위치) 교체 및 전송설비 고도화. 차단 시스템 연동 포함.',
+    requirements:['통신설비 시공 실적','L2/L3 네트워크 구성 경험'],
+    contact:{name:'나라장터 담당자',tel:'1588-0800',email:'',method:'나라장터 전자입찰'}
+  },
+  {
+    id:'G2B-DEMO-004', source:'g2b', type:'procurement',
+    title:'고속도로 지장물 이설 - IT 통신구 이전공사 (충청구간)',
+    agency:'한국도로공사 충청본부', ministryFull:'한국도로공사',
+    budgetWon:2_100_000_000,
+    postDate:today(), deadline:addDays(25),
+    categories:['install','telecom'],
+    bidNumber:'20260527-EXCO-JM-004',
+    url:'https://www.g2b.go.kr',
+    summary:'고속도로 확장공사 구간 내 지장물(IT 통신구) 이설 및 광케이블 재배치. 통신 차단 없는 절체 시공 요구.',
+    requirements:['정보통신공사업 면허','지장물 이설 시공 실적'],
+    contact:{name:'나라장터 담당자',tel:'1588-0800',email:'',method:'나라장터 전자입찰'}
+  },
+];
 
 // ── 데모 데이터 (스크래핑 실패 시 폴백) ─────────────────────
 
