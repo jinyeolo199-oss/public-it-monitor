@@ -115,8 +115,7 @@
     .stat-card.s-budget .stat-value { font-size:1.15rem; }
     .stat-sub { font-size:.68rem; color:#aaa; margin-top:4px; }
 
-    /* ── Filter Row ── */
-    .filter-row { display:flex; align-items:center; gap:9px; margin-bottom:13px; flex-wrap:wrap; }
+    /* ── Filter Row (기간 칩 공용) ── */
     .filter-label { font-size:.75rem; color:#555; font-weight:bold; white-space:nowrap; }
     .chips { display:flex; gap:5px; flex-wrap:wrap; }
     .chip {
@@ -176,11 +175,6 @@
     .t-rd   { background:#e8eaf6; color:#3949ab; }
     .t-proc { background:#e3f2fd; color:#1565c0; }
     .t-sup  { background:#e8f5e9; color:#2e7d32; }
-    .cat-badge {
-      display:inline-block; font-size:.62rem; padding:1px 6px;
-      border-radius:10px; background:#f0f4f8; color:#666;
-      border:1px solid #dde3ea; margin-right:2px; margin-top:1px;
-    }
 
     /* ── Source Badge ── */
     .src-badge {
@@ -474,20 +468,6 @@
     <span id="periodDesc" style="font-size:.73rem;color:#888;margin-left:6px;"></span>
   </div>
 
-  <!-- Category Filter -->
-  <div class="filter-row">
-    <span class="filter-label">분야:</span>
-    <div class="chips">
-      <span class="chip active" onclick="setCat('all',this)">전체</span>
-      <span class="chip" onclick="setCat('rd',this)">R&amp;D 과제</span>
-      <span class="chip" onclick="setCat('its',this)">🚦 ITS·교통시스템</span>
-      <span class="chip" onclick="setCat('telecom',this)">📡 통신·전송설비</span>
-      <span class="chip" onclick="setCat('cctv',this)">📷 CCTV·VMS</span>
-      <span class="chip" onclick="setCat('install',this)">🔧 설치·이설공사</span>
-      <span class="chip" onclick="setCat('it',this)">💻 IT 일반</span>
-    </div>
-  </div>
-
   <!-- 빠른검색 키워드 -->
   <div class="qsearch-bar">
     <span class="filter-label">🔎 사업명<br>빠른검색:</span>
@@ -548,37 +528,10 @@
 
 <script>
 // ══════════════════════════════════════════════
-//  검색 키워드 & 카테고리 (API와 동일 기준)
-// ══════════════════════════════════════════════
-const SEARCH_KEYWORDS_FE = [
-  'its','지장물','설치공사','it','광케이블','이설','차단','통신',
-  'l2','l3','스위치','교환설비','전송설비','정보통신망',
-  'cctv','vms','도로전광표지판','표지판',
-];
-const SEARCH_KW_RE_FE = new RegExp(
-  'r&d|연구개발|' + SEARCH_KEYWORDS_FE.map(k => k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),
-  'i'
-);
-
-function autoCatsFE(title) {
-  const t = (title || '').toLowerCase();
-  const cats = [];
-  if (/r&d|연구개발|기술개발|연구과제|과제공모/.test(t))                      cats.push('rd');
-  if (/\bits\b|vms|도로전광표지판|표지판/.test(t))                             cats.push('its');
-  if (/광케이블|통신|스위치|\bl2\b|\bl3\b|교환설비|전송설비|정보통신망/.test(t)) cats.push('telecom');
-  if (/cctv/.test(t))                                                          cats.push('cctv');
-  if (/설치공사|지장물|이설|차단/.test(t))                                      cats.push('install');
-  if (/\bit\b/.test(t))                                                        cats.push('it');
-  if (cats.length === 0) cats.push('it');
-  return cats;
-}
-
-// ══════════════════════════════════════════════
 //  전역 상태
 // ══════════════════════════════════════════════
 let ALL = [];
 let curSource = 'all';
-let curCat    = 'all';
 let curPeriod = 'all';   // 'all' | 'today' | 'recent'
 let curSearch = '';
 let expandId  = null;
@@ -655,17 +608,6 @@ function typeBadge(t) {
   if (t==='support') return '<span class="type-badge t-sup">지원사업</span>';
   return '<span class="type-badge t-proc">조달</span>';
 }
-const CAT_LBL = {
-  rd:      'R&D 과제',
-  its:     'ITS·교통시스템',
-  telecom: '통신·전송설비',
-  cctv:    'CCTV·VMS',
-  install: '설치·이설공사',
-  it:      'IT 일반',
-};
-function catBadges(cats) {
-  return (cats||[]).map(c=>`<span class="cat-badge">${CAT_LBL[c]||c}</span>`).join('');
-}
 function hl(text) {
   if (!curSearch) return esc(text);
   return esc(text).replace(new RegExp(`(${escRe(curSearch)})`,'gi'),'<span class="hl">$1</span>');
@@ -688,8 +630,6 @@ function filtered() {
       // 30일 전 ~ 어제 (오늘 공고 제외)
       if (!n.postDate || n.postDate >= TODAY_STR || n.postDate < THIRTY_AGO_STR) return false;
     }
-    // 카테고리
-    if (curCat !== 'all' && !(n.categories||[]).includes(curCat)) return false;
     // 검색
     if (curSearch.trim()) {
       const q = curSearch.toLowerCase();
@@ -735,10 +675,7 @@ function updateStats() {
 function render() {
   const list = filtered();
   document.getElementById('resultCnt').textContent = list.length;
-  const parts = [];
-  if (curSearch) parts.push(`"${curSearch}"`);
-  if (curCat !== 'all') parts.push(CAT_LBL[curCat]||curCat);
-  document.getElementById('filterDesc').textContent = parts.length ? `(${parts.join(', ')})` : '';
+  document.getElementById('filterDesc').textContent = curSearch ? `("${curSearch}" 검색 중)` : '';
 
   // 기간 설명 업데이트
   const pd = document.getElementById('periodDesc');
@@ -761,7 +698,6 @@ function render() {
   <td class="col-src">${srcBadge(n)}</td>
   <td class="col-title">
     <div class="n-title">${typeBadge(n.type)}${hl(n.title)}</div>
-    <div class="n-cats">${catBadges(n.categories)}</div>
   </td>
   <td class="col-agency">${hl(n.agency)}</td>
   <td class="col-budget">
@@ -845,13 +781,6 @@ function setSource(src, el) {
   el.classList.add('active');
   render();
 }
-function setCat(cat, el) {
-  curCat = cat; expandId = null;
-  // 카테고리 칩만 active 토글 (기간 칩 건드리지 않음)
-  document.querySelectorAll('.filter-row .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  render();
-}
 function setPeriod(period, el) {
   curPeriod = period; expandId = null;
   // 기간 칩만 active 토글
@@ -912,13 +841,11 @@ async function loadNotices() {
     if (res.ok) {
       const data = await res.json();
       ALL = Array.isArray(data) ? data : (data.notices || []);
-      // 카테고리를 새 기준으로 재분류
-      ALL.forEach(n => { n.categories = autoCatsFE(n.title); });
       document.getElementById('statusBar').className = 'status-bar live';
       document.getElementById('statusBar').innerHTML = '✅ <strong>실시간 연동 중:</strong>&nbsp; 나라장터(G2B) 승인 API 키로 실시간 공고 데이터가 표시됩니다. &nbsp;|&nbsp; 검색 키워드: ITS·광케이블·CCTV·통신·이설 등 17종';
     } else throw new Error('API 미연동');
   } catch {
-    ALL = DEMO.map(n => ({ ...n, categories: autoCatsFE(n.title) }));
+    ALL = DEMO;
     document.getElementById('statusBar').className = 'status-bar';
   }
   updateStats(); updateCounts(); render();
