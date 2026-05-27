@@ -198,10 +198,14 @@
     .b-mohw  { background:#c62828; color:#fff; }
     .b-mnd   { background:#455a64; color:#fff; }
     .b-mha   { background:#1565c0; color:#fff; }
-    .b-nia  { background:#00838f; color:#fff; }
-    .b-nipa { background:#00695c; color:#fff; }
-    .b-kisa { background:#b71c1c; color:#fff; }
-    .b-d2b  { background:#37474f; color:#fff; }
+    .b-nia    { background:#00838f; color:#fff; }
+    .b-nipa   { background:#00695c; color:#fff; }
+    .b-kisa   { background:#b71c1c; color:#fff; }
+    .b-d2b    { background:#37474f; color:#fff; }
+    .b-exco   { background:#558b2f; color:#fff; }
+    .b-kepco  { background:#f57f17; color:#fff; }
+    .b-krnw   { background:#4e342e; color:#fff; }
+    .b-kwater { background:#006064; color:#fff; }
 
     /* ── Budget ── */
     .bud-main { font-weight:bold; color:#1a237e; font-size:.84rem; }
@@ -351,6 +355,18 @@
     <button class="source-tab" onclick="setSource('d2b',this)">
       🪖 국방전자조달 <span class="tab-cnt" id="cnt-d2b">0</span>
     </button>
+    <button class="source-tab" onclick="setSource('exco',this)">
+      🛣️ 한국도로공사 <span class="tab-cnt" id="cnt-exco">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('kepco',this)">
+      ⚡ 한국전력공사 <span class="tab-cnt" id="cnt-kepco">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('krnw',this)">
+      🚆 국가철도공단 <span class="tab-cnt" id="cnt-krnw">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('kwater',this)">
+      💧 수자원공사 <span class="tab-cnt" id="cnt-kwater">0</span>
+    </button>
     <button class="source-tab" onclick="setSource('etc',this)">
       기타부처 <span class="tab-cnt" id="cnt-etc">0</span>
     </button>
@@ -433,7 +449,7 @@
 
 <footer>
   공공 IT·R&amp;D 공고 모니터 &nbsp;|&nbsp;
-  데이터 출처: 나라장터(G2B), NTIS, 각 부처 홈페이지 &nbsp;|&nbsp;
+  데이터 출처: 나라장터(G2B), NIA, NIPA, KISA, 국방전자조달, 한국도로공사, 한국전력공사, 국가철도공단, 수자원공사 &nbsp;|&nbsp;
   실제 공고는 반드시 원문 사이트를 직접 확인하세요.
 </footer>
 
@@ -492,13 +508,17 @@ const SRC_MAP = {
   moe:  ['b-moe','교육부'],   mof: ['b-mof','기재부'],
   mohw: ['b-mohw','복지부'],  mnd: ['b-mnd','국방부'],
   mha:  ['b-mha','행안부'],
-  nia:  ['b-nia','NIA'],
-  nipa: ['b-nipa','NIPA'],
-  kisa: ['b-kisa','KISA'],
-  d2b:  ['b-d2b','국방전자조달'],
+  nia:    ['b-nia','NIA'],
+  nipa:   ['b-nipa','NIPA'],
+  kisa:   ['b-kisa','KISA'],
+  d2b:    ['b-d2b','국방전자조달'],
+  exco:   ['b-exco','도로공사'],
+  kepco:  ['b-kepco','한전 SRM'],
+  krnw:   ['b-krnw','철도공단'],
+  kwater: ['b-kwater','수자원공사'],
 };
 const ETC_SRCS = ['me','moe','mof','mohw','mnd','molit','mha'];
-const AGENCY_SRCS = ['nia','nipa','kisa','d2b'];
+const AGENCY_SRCS = ['nia','nipa','kisa','d2b','exco','kepco','krnw','kwater'];
 
 function srcBadge(n) {
   const [cls, lbl] = SRC_MAP[n.source] || ['b-g2b', n.source];
@@ -544,7 +564,7 @@ function filtered() {
 
 function updateCounts() {
   document.getElementById('cnt-all').textContent = ALL.length;
-  ['g2b','ntis','msit','motie','mss','nia','nipa','kisa','d2b'].forEach(s => {
+  ['g2b','ntis','msit','motie','mss','nia','nipa','kisa','d2b','exco','kepco','krnw','kwater'].forEach(s => {
     const el = document.getElementById(`cnt-${s}`);
     if (el) el.textContent = ALL.filter(n=>n.source===s).length;
   });
@@ -950,6 +970,106 @@ const DEMO = [
     summary:'국가 사이버위협 인텔리전스(CTI) 공유체계 고도화. STIX 2.1/TAXII 2.1 표준 적용, 민·관·군 위협정보 실시간 공유.',
     requirements:['STIX/TAXII 구현 경험','보안관제 또는 CERT 운영 경험'],
     contact:{name:'KISA 사이버침해대응팀',tel:'118',email:'cti@kisa.or.kr',method:'나라장터 전자입찰'}
+  },
+  // ── 한국도로공사
+  {
+    id:'D-EXCO-001', source:'exco', type:'procurement',
+    title:'고속도로 통합관제시스템(FTMS) 노후장비 교체 및 SW 고도화',
+    agency:'한국도로공사', ministryFull:'한국도로공사 스마트도로처',
+    budgetWon:2_300_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,20),
+    categories:['infosys','sw','iot'], bidNumber:'EXCO-2026-FTMS-011',
+    url:'https://ebid.ex.co.kr/user/bids/getBidList.do',
+    summary:'전국 고속도로 교통관리시스템(FTMS) 노후 ITS 장비 교체 및 통합관제 SW 고도화. AI 기반 돌발상황 자동감지 기능 추가.',
+    requirements:['ITS/교통관제 시스템 구축 경험','공공기관 대규모 네트워크 구축 실적'],
+    contact:{name:'한국도로공사 ICT사업팀',tel:'054-811-0114',email:'ict@ex.co.kr',method:'한국도로공사 전자조달(e-Bid) 전자입찰'}
+  },
+  {
+    id:'D-EXCO-002', source:'exco', type:'procurement',
+    title:'스마트 하이웨이 빅데이터 플랫폼 2단계 구축사업',
+    agency:'한국도로공사', ministryFull:'한국도로공사',
+    budgetWon:1_800_000_000,
+    postDate:addDays(TODAY_STR,-3), deadline:addDays(TODAY_STR,13),
+    categories:['ai','data','infosys'], bidNumber:'EXCO-2026-DT-007',
+    url:'https://ebid.ex.co.kr/user/bids/getBidList.do',
+    summary:'고속도로 센서·CCTV·차량검지기 데이터를 통합한 빅데이터 분석 플랫폼 2단계 구축. 실시간 교통흐름 AI 예측 모델 개발 포함.',
+    requirements:['교통 빅데이터 분석 경험','실시간 스트리밍 처리 아키텍처 설계 역량'],
+    contact:{name:'한국도로공사 디지털혁신처',tel:'054-811-0114',email:'dx@ex.co.kr',method:'한국도로공사 전자조달 입찰'}
+  },
+  // ── 한국전력공사
+  {
+    id:'D-KEPCO-001', source:'kepco', type:'procurement',
+    title:'AMI(지능형 전력계량) 데이터 통합관리 플랫폼 구축',
+    agency:'한국전력공사', ministryFull:'한국전력공사 ICT본부',
+    budgetWon:5_600_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,25),
+    categories:['infosys','iot','data'], bidNumber:'KEPCO-2026-AMI-009',
+    url:'https://srm.kepco.co.kr/',
+    summary:'전국 2,400만 가구 AMI 스마트미터 계량 데이터를 실시간 수집·분석하는 통합 플랫폼 신규 구축. 클라우드 기반 빅데이터 아키텍처 적용.',
+    requirements:['전력/에너지 데이터 처리 시스템 구축 경험','IoT 대규모 데이터 수집 아키텍처 설계 역량'],
+    contact:{name:'한국전력공사 ICT기획처',tel:'061-345-3114',email:'ict@kepco.co.kr',method:'한국전력공사 SRM 전자입찰'}
+  },
+  {
+    id:'D-KEPCO-002', source:'kepco', type:'procurement',
+    title:'전력망 OT/IT 통합 사이버보안관제(SOC) 구축',
+    agency:'한국전력공사', ministryFull:'한국전력공사',
+    budgetWon:3_200_000_000,
+    postDate:addDays(TODAY_STR,-2), deadline:addDays(TODAY_STR,17),
+    categories:['security','infosys','network'], bidNumber:'KEPCO-2026-SEC-015',
+    url:'https://srm.kepco.co.kr/',
+    summary:'전력 제어망(OT) 및 업무망(IT) 통합 사이버보안관제센터(SOC) 구축. ICS/SCADA 보안 이상징후 탐지 AI 엔진 적용.',
+    requirements:['OT/ICS 보안 구축 경험 필수','전력·에너지 분야 보안 프로젝트 수행 실적'],
+    contact:{name:'한국전력공사 정보보안처',tel:'061-345-3114',email:'security@kepco.co.kr',method:'한국전력공사 SRM 제한경쟁입찰'}
+  },
+  // ── 국가철도공단
+  {
+    id:'D-KRNW-001', source:'krnw', type:'procurement',
+    title:'철도 통합관제시스템(ICCS) 고도화 및 AI 기반 이상감지 추가',
+    agency:'국가철도공단', ministryFull:'국가철도공단 철도시설처',
+    budgetWon:3_800_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,22),
+    categories:['infosys','ai','security'], bidNumber:'KRNW-2026-ICCS-008',
+    url:'https://epro.kr.or.kr/bidInfo/bidList.do',
+    summary:'국가 철도 통합관제시스템 노후 서버·소프트웨어 교체 및 AI 기반 선로이상 자동감지 모듈 추가. 고속철도·일반철도 통합 운영 환경 적용.',
+    requirements:['철도 또는 교통 관제시스템 구축 경험','실시간 모니터링 시스템 개발 역량'],
+    contact:{name:'국가철도공단 ICT사업부',tel:'044-200-3114',email:'ict@kr.or.kr',method:'국가철도공단 KR-EPRO 전자입찰'}
+  },
+  {
+    id:'D-KRNW-002', source:'krnw', type:'procurement',
+    title:'철도 시설물 IoT 센서 통합 모니터링 플랫폼 구축',
+    agency:'국가철도공단', ministryFull:'국가철도공단',
+    budgetWon:1_600_000_000,
+    postDate:addDays(TODAY_STR,-3), deadline:addDays(TODAY_STR,15),
+    categories:['iot','infosys','ai'], bidNumber:'KRNW-2026-IOT-012',
+    url:'https://epro.kr.or.kr/bidInfo/bidList.do',
+    summary:'교량·터널·선로 등 주요 철도시설물에 IoT 진동·변위·온도 센서 설치 및 실시간 이상감지 플랫폼 구축. AI 예측정비 연동.',
+    requirements:['SOC/사회기반시설 IoT 센서 시스템 경험','시계열 데이터 분석 역량'],
+    contact:{name:'국가철도공단 시설안전처',tel:'044-200-3114',email:'facility@kr.or.kr',method:'KR-EPRO 전자입찰'}
+  },
+  // ── 수자원공사
+  {
+    id:'D-KWATER-001', source:'kwater', type:'procurement',
+    title:'스마트 상수도 관망 AI 플랫폼 고도화 (누수감지 AI 포함)',
+    agency:'한국수자원공사', ministryFull:'한국수자원공사 스마트물관리처',
+    budgetWon:2_400_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,19),
+    categories:['ai','iot','infosys'], bidNumber:'KWATER-2026-SWM-014',
+    url:'https://www.kwater.or.kr/bid/bid0201Page.do',
+    summary:'전국 광역상수도 관망 내 IoT 압력·유량센서 데이터를 AI로 분석해 누수·이상 구간을 자동 탐지하는 스마트 관망관리 플랫폼 고도화.',
+    requirements:['상수도 또는 수자원 시스템 개발 경험','IoT 기반 이상탐지 AI 모델 구현 역량'],
+    contact:{name:'한국수자원공사 스마트운영처',tel:'042-629-3114',email:'smart@kwater.or.kr',method:'K-water 전자조달 전자입찰'}
+  },
+  {
+    id:'D-KWATER-002', source:'kwater', type:'procurement',
+    title:'수자원 통합정보 시스템(WRIS) 클라우드 전환 및 빅데이터 고도화',
+    agency:'한국수자원공사', ministryFull:'한국수자원공사',
+    budgetWon:1_700_000_000,
+    postDate:addDays(TODAY_STR,-4), deadline:addDays(TODAY_STR,14),
+    categories:['cloud','infosys','data'], bidNumber:'KWATER-2026-WRIS-009',
+    url:'https://www.kwater.or.kr/bid/bid0201Page.do',
+    summary:'수자원 실시간 관측·댐 운영·수질 모니터링 통합정보시스템(WRIS) 클라우드 전환 및 빅데이터 분석 기능 고도화.',
+    requirements:['환경·수자원 정보시스템 구축 경험','공공기관 클라우드 전환 수행 실적(CSAP 우대)'],
+    contact:{name:'한국수자원공사 IT전략처',tel:'042-629-3114',email:'ict@kwater.or.kr',method:'K-water 전자조달 전자입찰'}
   },
   // ── 국방전자조달
   {
