@@ -299,6 +299,31 @@
     }
     .period-bar .filter-label { color:#0d3b6e; }
 
+    /* ── 빠른검색 키워드 바 ── */
+    .qsearch-bar {
+      display:flex; align-items:flex-start; gap:9px;
+      margin-bottom:10px; padding:11px 15px;
+      background:#fff; border-radius:8px;
+      box-shadow:0 1px 4px rgba(0,0,0,.07);
+      border-left:4px solid #2e7d32; flex-wrap:wrap;
+    }
+    .qsearch-bar .filter-label { color:#2e7d32; padding-top:3px; white-space:nowrap; }
+    .qs-chip {
+      display:inline-block; padding:4px 12px; border-radius:14px;
+      font-size:.74rem; cursor:pointer; font-family:inherit; font-weight:600;
+      border:1.5px solid #b0bec5; background:#f5f7fa; color:#445;
+      transition:all .12s; user-select:none; line-height:1.6;
+    }
+    .qs-chip:hover { border-color:#1565c0; color:#1565c0; background:#e8f0fe; }
+    .qs-chip.qs-active {
+      background:#1565c0; color:#fff; border-color:#1565c0;
+      box-shadow:0 2px 6px rgba(21,101,192,.35);
+    }
+    #qsClear {
+      border-color:#e53935; color:#e53935; background:#fff; font-weight:normal;
+    }
+    #qsClear:hover { background:#ffebee; }
+
     /* ── Highlight ── */
     .hl { background:#fff59d; border-radius:2px; padding:0 1px; }
 
@@ -460,6 +485,32 @@
       <span class="chip" onclick="setCat('cctv',this)">📷 CCTV·VMS</span>
       <span class="chip" onclick="setCat('install',this)">🔧 설치·이설공사</span>
       <span class="chip" onclick="setCat('it',this)">💻 IT 일반</span>
+    </div>
+  </div>
+
+  <!-- 빠른검색 키워드 -->
+  <div class="qsearch-bar">
+    <span class="filter-label">🔎 사업명<br>빠른검색:</span>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+      <button class="qs-chip" onclick="quickSearch('ITS')">ITS</button>
+      <button class="qs-chip" onclick="quickSearch('지장물')">지장물</button>
+      <button class="qs-chip" onclick="quickSearch('설치공사')">설치공사</button>
+      <button class="qs-chip" onclick="quickSearch('IT')">IT</button>
+      <button class="qs-chip" onclick="quickSearch('광케이블')">광케이블</button>
+      <button class="qs-chip" onclick="quickSearch('이설')">이설</button>
+      <button class="qs-chip" onclick="quickSearch('차단')">차단</button>
+      <button class="qs-chip" onclick="quickSearch('통신')">통신</button>
+      <button class="qs-chip" onclick="quickSearch('스위치')">스위치</button>
+      <button class="qs-chip" onclick="quickSearch('L2')">L2</button>
+      <button class="qs-chip" onclick="quickSearch('L3')">L3</button>
+      <button class="qs-chip" onclick="quickSearch('교환설비')">교환설비</button>
+      <button class="qs-chip" onclick="quickSearch('전송설비')">전송설비</button>
+      <button class="qs-chip" onclick="quickSearch('정보통신망')">정보통신망</button>
+      <button class="qs-chip" onclick="quickSearch('CCTV')">CCTV</button>
+      <button class="qs-chip" onclick="quickSearch('VMS')">VMS</button>
+      <button class="qs-chip" onclick="quickSearch('도로전광표지판')">도로전광표지판</button>
+      <button class="qs-chip" onclick="quickSearch('표지판')">표지판</button>
+      <button class="qs-chip" id="qsClear" onclick="clearQSearch()" style="display:none">✕ 검색 초기화</button>
     </div>
   </div>
 
@@ -809,8 +860,46 @@ function setPeriod(period, el) {
   render();
 }
 document.getElementById('searchInput').addEventListener('input', function() {
-  curSearch = this.value; expandId = null; render();
+  curSearch = this.value; expandId = null;
+  updateQsChips(); render();
 });
+
+// ── 빠른검색 키워드 칩 ──────────────────────────────────────
+const QS_WORDS = [
+  'ITS','지장물','설치공사','IT','광케이블','이설','차단','통신',
+  'L2','L3','스위치','교환설비','전송설비','정보통신망',
+  'CCTV','VMS','도로전광표지판','표지판',
+];
+
+function quickSearch(word) {
+  const input = document.getElementById('searchInput');
+  // 같은 칩 다시 클릭 → 해제(토글)
+  if (curSearch.toLowerCase() === word.toLowerCase()) {
+    input.value = '';
+    curSearch = '';
+  } else {
+    input.value = word;
+    curSearch = word;
+  }
+  expandId = null;
+  updateQsChips();
+  render();
+}
+
+function clearQSearch() {
+  document.getElementById('searchInput').value = '';
+  curSearch = ''; expandId = null;
+  updateQsChips(); render();
+}
+
+function updateQsChips() {
+  const q = curSearch.toLowerCase();
+  document.querySelectorAll('.qs-chip:not(#qsClear)').forEach(btn => {
+    btn.classList.toggle('qs-active', btn.textContent.trim().toLowerCase() === q);
+  });
+  const clrBtn = document.getElementById('qsClear');
+  if (clrBtn) clrBtn.style.display = curSearch ? '' : 'none';
+}
 
 // ══════════════════════════════════════════════
 //  데이터 로드
