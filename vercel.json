@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/notices.js": {
+      "maxDuration": 30
+    }
+  }
+}
