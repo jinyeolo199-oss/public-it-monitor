@@ -81,19 +81,35 @@ async function fetchPage(url) {
   return r.text();
 }
 
+// ── 검색 키워드 정의 (r&d는 별도 유지) ──────────────────────
+const SEARCH_KEYWORDS = [
+  'its','지장물','설치공사','it','광케이블','이설','차단','통신',
+  'l2','l3','스위치','교환설비','전송설비','정보통신망',
+  'cctv','vms','도로전광표지판','표지판',
+];
+// 빠른 검색용 정규식 (r&d 포함)
+const SEARCH_KW_RE = new RegExp(
+  'r&d|연구개발|' + SEARCH_KEYWORDS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),
+  'i'
+);
+
 // 공고명에서 카테고리 자동 분류
 function autoCategories(title) {
   const t = (title || '').toLowerCase();
   const cats = [];
-  if (/ai|인공지능|머신러닝|딥러닝|빅데이터|데이터분석|llm|생성형/.test(t)) cats.push('ai');
-  if (/보안|사이버|취약점|isms|cc인증|침해|방화벽|암호|개인정보/.test(t))   cats.push('security');
-  if (/소프트웨어|sw|앱|플랫폼|서비스개발|시스템개발/.test(t))              cats.push('sw');
-  if (/정보시스템|전산|erp|eis|행정시스템|포털|인프라/.test(t))             cats.push('infosys');
-  if (/네트워크|통신|5g|6g|wifi|광케이블|무선/.test(t))                     cats.push('network');
-  if (/클라우드|cloud|saas|paas|iaas/.test(t))                              cats.push('cloud');
-  if (/iot|스마트팩토리|스마트공장|센서|디지털트윈/.test(t))                cats.push('iot');
-  if (/r&d|연구개발|기술개발|연구과제|과제공모/.test(t))                    cats.push('rd');
-  if (cats.length === 0) cats.push('infosys');
+  // R&D (별도 유지)
+  if (/r&d|연구개발|기술개발|연구과제|과제공모/.test(t))                             cats.push('rd');
+  // ITS·교통시스템
+  if (/\bits\b|vms|도로전광표지판|표지판/.test(t))                                    cats.push('its');
+  // 통신·전송설비
+  if (/광케이블|통신|스위치|\bl2\b|\bl3\b|교환설비|전송설비|정보통신망/.test(t))       cats.push('telecom');
+  // CCTV
+  if (/cctv/.test(t))                                                                 cats.push('cctv');
+  // 설치·이설·공사
+  if (/설치공사|지장물|이설|차단/.test(t))                                             cats.push('install');
+  // IT 일반
+  if (/\bit\b/.test(t))                                                               cats.push('it');
+  if (cats.length === 0) cats.push('it');
   return cats;
 }
 
@@ -127,8 +143,8 @@ function parseNoticesFromHtml(html, source, baseUrl, defaultAgency) {
     const dateMatch = dateRegex.exec(row.replace(linkMatch[0], ''));
     const dateStr = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : '';
 
-    // IT 관련 키워드 필터
-    if (!/정보|소프트|sw|ai|인공|데이터|시스템|보안|사이버|클라우드|네트워크|통신|디지털|플랫폼|기술|개발|iot|전산|it|ict/.test(title.toLowerCase())) continue;
+    // 사용자 지정 키워드 필터 (its, 광케이블, 통신, cctv, 설치공사 등)
+    if (!SEARCH_KW_RE.test(title)) continue;
 
     notices.push({
       id: `${source}-${Buffer.from(title).toString('base64').slice(0, 12)}`,
@@ -290,7 +306,8 @@ async function fetchKWATER() {
 
 // ── 나라장터 G2B ─────────────────────────────────────────────
 async function fetchG2B() {
-  const keywords = ['정보시스템', '소프트웨어', '보안', '데이터', 'AI'];
+  // 사용자 지정 검색 키워드 (나라장터 API 검색어)
+  const keywords = ['its','광케이블','통신설비','cctv','정보통신망','교환설비','전송설비','vms','도로전광표지판','이설공사'];
   const results = [];
   const today = new Date();
   const end = formatDate(today) + '2359';

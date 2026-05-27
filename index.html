@@ -453,14 +453,13 @@
   <div class="filter-row">
     <span class="filter-label">분야:</span>
     <div class="chips">
-      <span class="chip active"  onclick="setCat('all',this)">전체</span>
+      <span class="chip active" onclick="setCat('all',this)">전체</span>
       <span class="chip" onclick="setCat('rd',this)">R&amp;D 과제</span>
-      <span class="chip" onclick="setCat('sw',this)">소프트웨어</span>
-      <span class="chip" onclick="setCat('infosys',this)">정보시스템</span>
-      <span class="chip" onclick="setCat('security',this)">사이버보안</span>
-      <span class="chip" onclick="setCat('ai',this)">AI·빅데이터</span>
-      <span class="chip" onclick="setCat('network',this)">통신·네트워크</span>
-      <span class="chip" onclick="setCat('cloud',this)">클라우드</span>
+      <span class="chip" onclick="setCat('its',this)">🚦 ITS·교통시스템</span>
+      <span class="chip" onclick="setCat('telecom',this)">📡 통신·전송설비</span>
+      <span class="chip" onclick="setCat('cctv',this)">📷 CCTV·VMS</span>
+      <span class="chip" onclick="setCat('install',this)">🔧 설치·이설공사</span>
+      <span class="chip" onclick="setCat('it',this)">💻 IT 일반</span>
     </div>
   </div>
 
@@ -497,6 +496,32 @@
 </footer>
 
 <script>
+// ══════════════════════════════════════════════
+//  검색 키워드 & 카테고리 (API와 동일 기준)
+// ══════════════════════════════════════════════
+const SEARCH_KEYWORDS_FE = [
+  'its','지장물','설치공사','it','광케이블','이설','차단','통신',
+  'l2','l3','스위치','교환설비','전송설비','정보통신망',
+  'cctv','vms','도로전광표지판','표지판',
+];
+const SEARCH_KW_RE_FE = new RegExp(
+  'r&d|연구개발|' + SEARCH_KEYWORDS_FE.map(k => k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),
+  'i'
+);
+
+function autoCatsFE(title) {
+  const t = (title || '').toLowerCase();
+  const cats = [];
+  if (/r&d|연구개발|기술개발|연구과제|과제공모/.test(t))                      cats.push('rd');
+  if (/\bits\b|vms|도로전광표지판|표지판/.test(t))                             cats.push('its');
+  if (/광케이블|통신|스위치|\bl2\b|\bl3\b|교환설비|전송설비|정보통신망/.test(t)) cats.push('telecom');
+  if (/cctv/.test(t))                                                          cats.push('cctv');
+  if (/설치공사|지장물|이설|차단/.test(t))                                      cats.push('install');
+  if (/\bit\b/.test(t))                                                        cats.push('it');
+  if (cats.length === 0) cats.push('it');
+  return cats;
+}
+
 // ══════════════════════════════════════════════
 //  전역 상태
 // ══════════════════════════════════════════════
@@ -579,8 +604,14 @@ function typeBadge(t) {
   if (t==='support') return '<span class="type-badge t-sup">지원사업</span>';
   return '<span class="type-badge t-proc">조달</span>';
 }
-const CAT_LBL = { rd:'R&D', sw:'SW', infosys:'정보시스템', security:'보안',
-                  ai:'AI·빅데이터', network:'통신', cloud:'클라우드', iot:'IoT', data:'데이터' };
+const CAT_LBL = {
+  rd:      'R&D 과제',
+  its:     'ITS·교통시스템',
+  telecom: '통신·전송설비',
+  cctv:    'CCTV·VMS',
+  install: '설치·이설공사',
+  it:      'IT 일반',
+};
 function catBadges(cats) {
   return (cats||[]).map(c=>`<span class="cat-badge">${CAT_LBL[c]||c}</span>`).join('');
 }
@@ -792,11 +823,13 @@ async function loadNotices() {
     if (res.ok) {
       const data = await res.json();
       ALL = Array.isArray(data) ? data : (data.notices || []);
+      // 카테고리를 새 기준으로 재분류
+      ALL.forEach(n => { n.categories = autoCatsFE(n.title); });
       document.getElementById('statusBar').className = 'status-bar live';
-      document.getElementById('statusBar').innerHTML = '✅ <strong>실시간 연동 중:</strong>&nbsp; 나라장터·NTIS 실제 데이터가 표시됩니다.';
+      document.getElementById('statusBar').innerHTML = '✅ <strong>실시간 연동 중:</strong>&nbsp; 나라장터 등 실제 데이터가 표시됩니다.';
     } else throw new Error('API 미연동');
   } catch {
-    ALL = DEMO;
+    ALL = DEMO.map(n => ({ ...n, categories: autoCatsFE(n.title) }));
     document.getElementById('statusBar').className = 'status-bar';
   }
   updateStats(); updateCounts(); render();
