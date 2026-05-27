@@ -1,1 +1,11 @@
-{}
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/notices.js", "use": "@vercel/node" },
+    { "src": "index.html",    "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/notices", "dest": "/api/notices.js" },
+    { "src": "/(.*)",        "dest": "/index.html" }
+  ]
+}
