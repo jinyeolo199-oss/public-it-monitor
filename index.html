@@ -915,7 +915,7 @@ async function loadNotices() {
       // 카테고리를 새 기준으로 재분류
       ALL.forEach(n => { n.categories = autoCatsFE(n.title); });
       document.getElementById('statusBar').className = 'status-bar live';
-      document.getElementById('statusBar').innerHTML = '✅ <strong>실시간 연동 중:</strong>&nbsp; 나라장터 등 실제 데이터가 표시됩니다.';
+      document.getElementById('statusBar').innerHTML = '✅ <strong>실시간 연동 중:</strong>&nbsp; 나라장터(G2B) 승인 API 키로 실시간 공고 데이터가 표시됩니다. &nbsp;|&nbsp; 검색 키워드: ITS·광케이블·CCTV·통신·이설 등 17종';
     } else throw new Error('API 미연동');
   } catch {
     ALL = DEMO.map(n => ({ ...n, categories: autoCatsFE(n.title) }));

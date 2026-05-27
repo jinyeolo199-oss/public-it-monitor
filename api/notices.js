@@ -304,49 +304,82 @@ async function fetchKWATER() {
   return KWATER_DEMO;
 }
 
-// ── 나라장터 G2B ─────────────────────────────────────────────
+// ── 나라장터 G2B (승인된 API 키) ────────────────────────────
 async function fetchG2B() {
-  // 사용자 지정 검색 키워드 (나라장터 API 검색어)
-  const keywords = ['its','광케이블','통신설비','cctv','정보통신망','교환설비','전송설비','vms','도로전광표지판','이설공사'];
+  // 사용자 지정 키워드 전체 반영 (r&d 제외)
+  const keywords = [
+    'its', '광케이블', '통신', 'cctv', '정보통신망',
+    '교환설비', '전송설비', 'vms', '도로전광표지판',
+    '이설', '지장물', '설치공사', '스위치', '표지판',
+    'l2', 'l3', '차단',
+  ];
   const results = [];
   const today = new Date();
-  const end = formatDate(today) + '2359';
+  const end   = formatDate(today) + '2359';
   const start = formatDate(new Date(today - 30 * 86400000)) + '0000';
 
+  const BASE = 'https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServc';
+
   for (const kw of keywords) {
-    const url = `http://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServc?serviceKey=${G2B_API_KEY}&numOfRows=20&pageNo=1&type=json&inqryBgnDt=${start}&inqryEndDt=${end}&bidNtceNm=${encodeURIComponent(kw)}`;
+    const url = BASE
+      + `?serviceKey=${G2B_API_KEY}`
+      + `&numOfRows=100&pageNo=1&type=json`
+      + `&inqryBgnDt=${start}&inqryEndDt=${end}`
+      + `&bidNtceNm=${encodeURIComponent(kw)}`;
     try {
-      const r = await Promise.race([fetch(url), timeout(6000)]);
-      const text = await r.text();
-      if (!text.includes('"items"')) continue;
-      const json = JSON.parse(text);
-      const items = json?.response?.body?.items?.item || [];
-      const arr = Array.isArray(items) ? items : [items];
-      arr.forEach(item => {
+      const r = await Promise.race([fetch(url), timeout(8000)]);
+      if (!r.ok) continue;
+
+      let json;
+      try { json = JSON.parse(await r.text()); } catch { continue; }
+
+      // resultCode '00' = 정상, 그 외는 건너뜀
+      const rc = json?.response?.header?.resultCode;
+      if (rc !== '00') continue;
+
+      const raw   = json?.response?.body?.items?.item ?? [];
+      const items = Array.isArray(raw) ? raw : [raw];
+
+      items.forEach(item => {
         if (!item.bidNtceNm) return;
+        // 나라장터 공고 직접 링크
+        const bidUrl = item.bidNtceNo
+          ? `https://www.g2b.go.kr/pt/menu/selectSubFrame.do?bidno=${item.bidNtceNo}&bidseq=${item.bidNtceOrd || '000'}&procmntReqNo=&reliefCntrctYn=N`
+          : 'https://www.g2b.go.kr';
+
         results.push({
-          id: `G2B-${item.bidNtceNo || Math.random()}`,
-          source: 'g2b', type: 'procurement',
-          title: item.bidNtceNm,
-          agency: item.ntceInsttNm || '',
-          ministryFull: item.dminsttNm || item.ntceInsttNm || '',
-          budgetWon: parseInt(item.asignBdgt || 0) || 0,
-          postDate: (item.bidNtceDt || '').substring(0, 10),
-          deadline: (item.bidClseDt || '').substring(0, 10),
-          categories: autoCategories(item.bidNtceNm),
-          bidNumber: item.bidNtceNo || '',
-          url: `https://www.g2b.go.kr`,
-          summary: item.bidNtceSpcfctnNm || '',
+          id:          `G2B-${item.bidNtceNo}-${item.bidNtceOrd || 0}`,
+          source:      'g2b',
+          type:        'procurement',
+          title:       item.bidNtceNm,
+          agency:      item.ntceInsttNm     || '',
+          ministryFull:item.dminsttNm       || item.ntceInsttNm || '',
+          budgetWon:   parseInt(item.asignBdgt || 0) || 0,
+          postDate:    (item.bidNtceDt      || '').substring(0, 10),
+          deadline:    (item.bidClseDt      || '').substring(0, 10),
+          categories:  autoCategories(item.bidNtceNm),
+          bidNumber:   item.bidNtceNo       || '',
+          url:         bidUrl,
+          summary:     item.bidNtceSpcfctnNm
+                         || `나라장터 입찰공고 (공고번호: ${item.bidNtceNo || '-'})`,
           requirements: [],
-          contact: { name: item.dmstAdjstOfficerNm || '', tel: item.dmstAdjstOfficerTelNo || '', email: '', method: '나라장터 전자입찰' },
+          contact: {
+            name:   item.dmstAdjstOfficerNm    || '',
+            tel:    item.dmstAdjstOfficerTelNo  || '',
+            email:  '',
+            method: '나라장터 전자입찰',
+          },
         });
       });
-    } catch (e) { /* ignore */ }
+    } catch (e) { /* 키워드별 실패 무시 */ }
   }
 
-  // 중복 제거
+  // 중복 제거 (같은 공고번호)
   const seen = new Set();
-  return results.filter(n => { if (seen.has(n.id)) return false; seen.add(n.id); return true; });
+  return results.filter(n => {
+    if (seen.has(n.id)) return false;
+    seen.add(n.id); return true;
+  });
 }
 
 function formatDate(d) {
