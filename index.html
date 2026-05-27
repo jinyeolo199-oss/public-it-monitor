@@ -275,6 +275,30 @@
     .empty-state .ei { font-size:2.8rem; margin-bottom:12px; }
     .empty-state p  { font-size:.86rem; }
 
+    /* ── Period chip count badge ── */
+    .chip-cnt {
+      font-size:.63rem; background:rgba(0,0,0,.12);
+      padding:1px 5px; border-radius:8px; margin-left:3px;
+      font-weight:normal; display:inline-block;
+    }
+    .chip.active .chip-cnt { background:rgba(255,255,255,.28); }
+    /* 금일 칩 강조 */
+    .chip.today-chip.active { background:#e53935; border-color:#e53935; color:#fff; }
+    .chip.today-chip:not(.active):hover { border-color:#e53935; color:#e53935; }
+    /* 최근 칩 강조 */
+    .chip.recent-chip.active { background:#1976d2; border-color:#1976d2; color:#fff; }
+    .chip.recent-chip:not(.active):hover { border-color:#1976d2; color:#1976d2; }
+
+    /* ── Period Divider ── */
+    .period-bar {
+      display:flex; align-items:center; gap:9px;
+      margin-bottom:10px; padding:10px 15px;
+      background:#fff; border-radius:8px;
+      box-shadow:0 1px 4px rgba(0,0,0,.07);
+      border-left:4px solid #1565c0; flex-wrap:wrap;
+    }
+    .period-bar .filter-label { color:#0d3b6e; }
+
     /* ── Highlight ── */
     .hl { background:#fff59d; border-radius:2px; padding:0 1px; }
 
@@ -394,16 +418,35 @@
       <div class="stat-value" id="statUrgent">0</div>
       <div class="stat-sub">즉시 확인 필요</div>
     </div>
-    <div class="stat-card s-new">
-      <div class="stat-label">🆕 오늘 신규</div>
+    <div class="stat-card s-new" style="cursor:pointer" onclick="document.getElementById('periodChips').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-label">🆕 금일 등록</div>
       <div class="stat-value" id="statNew">0</div>
-      <div class="stat-sub" id="todayLabel">-</div>
+      <div class="stat-sub">
+        <span style="color:#1565c0;font-weight:bold" id="statRecent">0</span>건&nbsp;최근 30일 &nbsp;|&nbsp; <span id="todayLabel">-</span>
+      </div>
     </div>
     <div class="stat-card s-budget">
       <div class="stat-label">💰 총 공고 예산</div>
       <div class="stat-value" id="statBudget">-</div>
       <div class="stat-sub">집계 가능 공고 기준</div>
     </div>
+  </div>
+
+  <!-- Period Filter -->
+  <div class="period-bar" id="periodChips">
+    <span class="filter-label">📅 기간:</span>
+    <div class="chips">
+      <span class="chip active" onclick="setPeriod('all',this)">
+        전체 <span class="chip-cnt" id="pcnt-all">0</span>
+      </span>
+      <span class="chip today-chip" onclick="setPeriod('today',this)">
+        🆕 금일 업데이트 <span class="chip-cnt" id="pcnt-today">0</span>
+      </span>
+      <span class="chip recent-chip" onclick="setPeriod('recent',this)">
+        📋 최근 30일 (어제까지) <span class="chip-cnt" id="pcnt-recent">0</span>
+      </span>
+    </div>
+    <span id="periodDesc" style="font-size:.73rem;color:#888;margin-left:6px;"></span>
   </div>
 
   <!-- Category Filter -->
@@ -460,11 +503,18 @@
 let ALL = [];
 let curSource = 'all';
 let curCat    = 'all';
+let curPeriod = 'all';   // 'all' | 'today' | 'recent'
 let curSearch = '';
 let expandId  = null;
 
 const TODAY_STR = new Date().toISOString().slice(0,10);
 const TODAY     = new Date(TODAY_STR);
+// 30일 전 날짜 (어제까지 구간의 시작점)
+const THIRTY_AGO = new Date(TODAY); THIRTY_AGO.setDate(THIRTY_AGO.getDate() - 30);
+const THIRTY_AGO_STR = THIRTY_AGO.toISOString().slice(0,10);
+// 어제 날짜
+const YESTERDAY = new Date(TODAY); YESTERDAY.setDate(YESTERDAY.getDate() - 1);
+const YESTERDAY_STR = YESTERDAY.toISOString().slice(0,10);
 
 // ══════════════════════════════════════════════
 //  유틸
@@ -549,6 +599,13 @@ function filtered() {
       if (curSource === 'etc') { if (!ETC_SRCS.includes(n.source)) return false; }
       else if (n.source !== curSource) return false;
     }
+    // 기간
+    if (curPeriod === 'today') {
+      if (n.postDate !== TODAY_STR) return false;
+    } else if (curPeriod === 'recent') {
+      // 30일 전 ~ 어제 (오늘 공고 제외)
+      if (!n.postDate || n.postDate >= TODAY_STR || n.postDate < THIRTY_AGO_STR) return false;
+    }
     // 카테고리
     if (curCat !== 'all' && !(n.categories||[]).includes(curCat)) return false;
     // 검색
@@ -569,12 +626,22 @@ function updateCounts() {
     if (el) el.textContent = ALL.filter(n=>n.source===s).length;
   });
   document.getElementById('cnt-etc').textContent = ALL.filter(n=>ETC_SRCS.includes(n.source)).length;
+
+  // 기간 칩 카운트
+  const todayCnt  = ALL.filter(n => n.postDate === TODAY_STR).length;
+  const recentCnt = ALL.filter(n => n.postDate && n.postDate >= THIRTY_AGO_STR && n.postDate < TODAY_STR).length;
+  document.getElementById('pcnt-all').textContent    = ALL.length;
+  document.getElementById('pcnt-today').textContent  = todayCnt;
+  document.getElementById('pcnt-recent').textContent = recentCnt;
 }
 
 function updateStats() {
   document.getElementById('statTotal').textContent   = ALL.length;
   document.getElementById('statUrgent').textContent  = ALL.filter(n=>{ const d=dday(n.deadline); return d!==null&&d>=0&&d<=3; }).length;
-  document.getElementById('statNew').textContent     = ALL.filter(n=>n.postDate===TODAY_STR).length;
+  const todayCnt  = ALL.filter(n=>n.postDate===TODAY_STR).length;
+  const recentCnt = ALL.filter(n=>n.postDate && n.postDate>=THIRTY_AGO_STR && n.postDate<TODAY_STR).length;
+  document.getElementById('statNew').textContent     = todayCnt;
+  document.getElementById('statRecent').textContent  = recentCnt;
   document.getElementById('todayLabel').textContent  = TODAY_STR;
   const total = ALL.reduce((s,n)=>s+(n.budgetWon||0),0);
   const b = fmtBudget(total);
@@ -590,6 +657,12 @@ function render() {
   if (curSearch) parts.push(`"${curSearch}"`);
   if (curCat !== 'all') parts.push(CAT_LBL[curCat]||curCat);
   document.getElementById('filterDesc').textContent = parts.length ? `(${parts.join(', ')})` : '';
+
+  // 기간 설명 업데이트
+  const pd = document.getElementById('periodDesc');
+  if (curPeriod === 'today')  pd.textContent = `📅 기준일: ${TODAY_STR}`;
+  else if (curPeriod === 'recent') pd.textContent = `📅 기간: ${THIRTY_AGO_STR} ~ ${YESTERDAY_STR}`;
+  else pd.textContent = '';
 
   const tbody = document.getElementById('tbody');
   if (!list.length) {
@@ -692,7 +765,15 @@ function setSource(src, el) {
 }
 function setCat(cat, el) {
   curCat = cat; expandId = null;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  // 카테고리 칩만 active 토글 (기간 칩 건드리지 않음)
+  document.querySelectorAll('.filter-row .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+function setPeriod(period, el) {
+  curPeriod = period; expandId = null;
+  // 기간 칩만 active 토글
+  document.querySelectorAll('.period-bar .chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   render();
 }
