@@ -198,6 +198,10 @@
     .b-mohw  { background:#c62828; color:#fff; }
     .b-mnd   { background:#455a64; color:#fff; }
     .b-mha   { background:#1565c0; color:#fff; }
+    .b-nia  { background:#00838f; color:#fff; }
+    .b-nipa { background:#00695c; color:#fff; }
+    .b-kisa { background:#b71c1c; color:#fff; }
+    .b-d2b  { background:#37474f; color:#fff; }
 
     /* ── Budget ── */
     .bud-main { font-weight:bold; color:#1a237e; font-size:.84rem; }
@@ -334,6 +338,18 @@
     </button>
     <button class="source-tab" onclick="setSource('mss',this)">
       🏢 중소벤처기업부 <span class="tab-cnt" id="cnt-mss">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('nia',this)">
+      🧠 NIA <span class="tab-cnt" id="cnt-nia">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('nipa',this)">
+      💼 NIPA <span class="tab-cnt" id="cnt-nipa">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('kisa',this)">
+      🔒 KISA <span class="tab-cnt" id="cnt-kisa">0</span>
+    </button>
+    <button class="source-tab" onclick="setSource('d2b',this)">
+      🪖 국방전자조달 <span class="tab-cnt" id="cnt-d2b">0</span>
     </button>
     <button class="source-tab" onclick="setSource('etc',this)">
       기타부처 <span class="tab-cnt" id="cnt-etc">0</span>
@@ -476,8 +492,13 @@ const SRC_MAP = {
   moe:  ['b-moe','교육부'],   mof: ['b-mof','기재부'],
   mohw: ['b-mohw','복지부'],  mnd: ['b-mnd','국방부'],
   mha:  ['b-mha','행안부'],
+  nia:  ['b-nia','NIA'],
+  nipa: ['b-nipa','NIPA'],
+  kisa: ['b-kisa','KISA'],
+  d2b:  ['b-d2b','국방전자조달'],
 };
 const ETC_SRCS = ['me','moe','mof','mohw','mnd','molit','mha'];
+const AGENCY_SRCS = ['nia','nipa','kisa','d2b'];
 
 function srcBadge(n) {
   const [cls, lbl] = SRC_MAP[n.source] || ['b-g2b', n.source];
@@ -522,12 +543,12 @@ function filtered() {
 }
 
 function updateCounts() {
-  const total = ALL.length;
-  document.getElementById('cnt-all').textContent   = total;
-  ['g2b','ntis','msit','motie','mss'].forEach(s =>
-    document.getElementById(`cnt-${s}`).textContent = ALL.filter(n=>n.source===s).length
-  );
-  document.getElementById('cnt-etc').textContent   = ALL.filter(n=>ETC_SRCS.includes(n.source)).length;
+  document.getElementById('cnt-all').textContent = ALL.length;
+  ['g2b','ntis','msit','motie','mss','nia','nipa','kisa','d2b'].forEach(s => {
+    const el = document.getElementById(`cnt-${s}`);
+    if (el) el.textContent = ALL.filter(n=>n.source===s).length;
+  });
+  document.getElementById('cnt-etc').textContent = ALL.filter(n=>ETC_SRCS.includes(n.source)).length;
 }
 
 function updateStats() {
@@ -854,6 +875,106 @@ const DEMO = [
     summary:'스마트공장 고도화(레벨3→4) 전환을 희망하는 중소 제조기업 및 솔루션 공급기업 모집. 정부 지원금 최대 1억원.',
     requirements:['스마트공장 레벨2 이상 운영 중','중소기업기본법상 중소기업','공급기업: ICT 기술 역량 증빙'],
     contact:{name:'스마트제조혁신추진단',tel:'042-869-5200',email:'smart@smc.go.kr',method:'스마트제조혁신포털 온라인 신청'}
+  },
+  // ── NIA
+  {
+    id:'D-NIA-001', source:'nia', type:'rd',
+    title:'2026년 AI 기반 공공서비스 지능화 사업 신규과제 공모',
+    agency:'한국지능정보사회진흥원', ministryFull:'한국지능정보사회진흥원 (과기부 산하)',
+    budgetWon:2_000_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,21),
+    categories:['ai','infosys','rd'], bidNumber:'NIA-2026-AI-001',
+    url:'https://www.nia.or.kr/site/nia_kor/ex/bbs/List.do?cbIdx=25746',
+    summary:'행정·공공기관 AI 도입 지원을 위한 지능화 사업 신규과제 공모. 민원서비스·내부행정 AI 자동화, 공공데이터 기반 예측 서비스 개발 포함.',
+    requirements:['AI 서비스 개발 실적 1건 이상','공공기관 사업 수행 경험','정보보호 관리체계 인증 보유'],
+    contact:{name:'NIA 공공지능화팀',tel:'02-2131-0700',email:'ai@nia.or.kr',method:'NIA 사업관리포털 온라인 신청'}
+  },
+  {
+    id:'D-NIA-002', source:'nia', type:'procurement',
+    title:'지역 디지털 혁신거점(DX센터) 통합 운영관리 시스템 구축',
+    agency:'한국지능정보사회진흥원', ministryFull:'한국지능정보사회진흥원',
+    budgetWon:800_000_000,
+    postDate:addDays(TODAY_STR,-2), deadline:addDays(TODAY_STR,12),
+    categories:['infosys','sw','cloud'], bidNumber:'NIA-2026-DX-003',
+    url:'https://www.nia.or.kr/site/nia_kor/ex/bbs/List.do?cbIdx=25746',
+    summary:'전국 디지털 혁신거점(DX센터) 운영 현황 통합 관리 시스템 구축. 클라우드 기반 SaaS 형태로 개발.',
+    requirements:['클라우드 기반 SaaS 개발 역량','지자체 정보화 사업 수행 경험'],
+    contact:{name:'NIA 지역디지털팀',tel:'02-2131-0700',email:'dx@nia.or.kr',method:'나라장터 전자입찰'}
+  },
+  // ── NIPA
+  {
+    id:'D-NIPA-001', source:'nipa', type:'support',
+    title:'2026년 SW 고성장 클럽 200 지원사업 참여기업 모집',
+    agency:'정보통신산업진흥원', ministryFull:'정보통신산업진흥원 (과기부 산하)',
+    budgetWon:500_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,14),
+    categories:['sw','ai','cloud'], bidNumber:'NIPA-2026-SW-001',
+    url:'https://www.nipa.kr/board/list.it?categoryCode=001002004001',
+    summary:'글로벌 성장 잠재력 높은 SW기업 집중 육성. AI·클라우드·SaaS 분야 유망 기업 200개사 선정, 기업당 최대 5억원 지원.',
+    requirements:['SW 매출 10억원 이상 기업','글로벌 진출 의지','AI·클라우드 기반 제품 보유'],
+    contact:{name:'NIPA SW산업팀',tel:'042-710-1700',email:'swclub@nipa.kr',method:'NIPA 사업신청시스템'}
+  },
+  {
+    id:'D-NIPA-002', source:'nipa', type:'procurement',
+    title:'K-클라우드 확산 지원 플랫폼 고도화 사업',
+    agency:'정보통신산업진흥원', ministryFull:'정보통신산업진흥원',
+    budgetWon:1_200_000_000,
+    postDate:addDays(TODAY_STR,-3), deadline:addDays(TODAY_STR,18),
+    categories:['cloud','infosys','sw'], bidNumber:'NIPA-2026-CLOUD-005',
+    url:'https://www.nipa.kr/board/list.it?categoryCode=001002004001',
+    summary:'국내 클라우드 기업 해외 진출 및 국내 클라우드 전환 지원 통합 플랫폼 기능 고도화. 멀티클라우드 관리 기능 추가.',
+    requirements:['클라우드 플랫폼 개발 경험','MSP 자격 보유 우대'],
+    contact:{name:'NIPA 클라우드산업팀',tel:'042-710-1700',email:'cloud@nipa.kr',method:'나라장터 전자입찰'}
+  },
+  // ── KISA
+  {
+    id:'D-KISA-001', source:'kisa', type:'rd',
+    title:'2026년 사이버보안 핵심원천 기술개발 신규과제 공모',
+    agency:'한국인터넷진흥원', ministryFull:'한국인터넷진흥원 (과기부 산하)',
+    budgetWon:1_500_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,17),
+    categories:['security','ai','rd'], bidNumber:'KISA-2026-SEC-RD-001',
+    url:'https://www.kisa.or.kr/20301/form?page=1',
+    summary:'AI 기반 사이버위협 탐지·대응, 양자내성암호, 제로트러스트 보안 아키텍처 등 차세대 사이버보안 핵심기술 R&D 공모.',
+    requirements:['정보보안 분야 연구기관·기업','사이버보안 논문/특허 실적 우대'],
+    contact:{name:'KISA 사이버보안연구팀',tel:'061-820-1114',email:'sec_rd@kisa.or.kr',method:'KISA 연구관리시스템'}
+  },
+  {
+    id:'D-KISA-002', source:'kisa', type:'procurement',
+    title:'사이버위협 인텔리전스 공유 플랫폼 STIX/TAXII 2.1 고도화',
+    agency:'한국인터넷진흥원', ministryFull:'한국인터넷진흥원',
+    budgetWon:600_000_000,
+    postDate:addDays(TODAY_STR,-6), deadline:addDays(TODAY_STR,4),
+    categories:['security','network','infosys'], bidNumber:'KISA-2026-CTI-003',
+    url:'https://www.kisa.or.kr/20301/form?page=1',
+    summary:'국가 사이버위협 인텔리전스(CTI) 공유체계 고도화. STIX 2.1/TAXII 2.1 표준 적용, 민·관·군 위협정보 실시간 공유.',
+    requirements:['STIX/TAXII 구현 경험','보안관제 또는 CERT 운영 경험'],
+    contact:{name:'KISA 사이버침해대응팀',tel:'118',email:'cti@kisa.or.kr',method:'나라장터 전자입찰'}
+  },
+  // ── 국방전자조달
+  {
+    id:'D-D2B-001', source:'d2b', type:'procurement',
+    title:'합동지휘통제체계(C4I) 소프트웨어 유지보수 및 고도화',
+    agency:'방위사업청 국방전자조달', ministryFull:'방위사업청',
+    budgetWon:3_500_000_000,
+    postDate:TODAY_STR, deadline:addDays(TODAY_STR,23),
+    categories:['sw','security','network'], bidNumber:'D2B-2026-C4I-012',
+    url:'https://www.d2b.go.kr/d2b/cmn/c/c01/c01_001.do',
+    summary:'합동참모본부 C4I 체계 SW 유지보수 및 전술데이터링크 연동 기능 고도화. 사이버보안 강화 모듈 추가 개발 포함.',
+    requirements:['방산업체 지정 또는 동등 보안 인가','국방 정보시스템 개발 경험'],
+    contact:{name:'방위사업청 전력지원체계사업부',tel:'031-289-6114',email:'c4i@dapa.go.kr',method:'국방전자조달(D2B) 전자입찰'}
+  },
+  {
+    id:'D-D2B-002', source:'d2b', type:'procurement',
+    title:'군 사이버방어 통합 플랫폼 2026 도입 사업',
+    agency:'방위사업청 국방전자조달', ministryFull:'방위사업청',
+    budgetWon:6_000_000_000,
+    postDate:addDays(TODAY_STR,-2), deadline:addDays(TODAY_STR,28),
+    categories:['security','ai','infosys'], bidNumber:'D2B-2026-CYBER-008',
+    url:'https://www.d2b.go.kr/d2b/cmn/c/c01/c01_001.do',
+    summary:'군 네트워크 AI 기반 이상징후 탐지·자동대응 플랫폼 도입. 엔드포인트 보안, 망분리 환경 적용, 실시간 위협 시각화.',
+    requirements:['국방 보안적합성 검증 완료 제품','방산업체 보안 인가','CC인증 EAL4 이상'],
+    contact:{name:'방위사업청 정보화사업부',tel:'031-289-6114',email:'cyber@dapa.go.kr',method:'D2B 전자입찰 (제한경쟁)'}
   },
 ];
 
